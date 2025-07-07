@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.jyx.Data_unification.Unification;
+import com.jyx.healthsys.annotation.LogOperation;
 import com.jyx.healthsys.entity.Body;
 import com.jyx.healthsys.entity.BodyNotes;
 import com.jyx.healthsys.entity.SportInfo;
@@ -54,6 +55,7 @@ public class UserController {
      * @return 返回用户列表
      */
     @GetMapping("/all")
+    @LogOperation("查询用户列表")
     public Unification<List<User>> getAllUser(){
         List<User> list = userService.list();
         return Unification.success(list,"查询成功");
@@ -61,6 +63,7 @@ public class UserController {
 
 
     @PostMapping("/login")
+    @LogOperation("登录")
     public Unification<Map<String,Object>> login(@RequestBody User user){
         Map<String,Object> data = userService.login(user);
         if (data != null) {
@@ -85,6 +88,7 @@ public class UserController {
 
 
     @PostMapping("/register")
+    @LogOperation("注册")
     public Unification<Map<String,Object>> register(@RequestBody User register) {
         Map<String,Object> data = userService.register(register);
         if (data.get("success")!= null){
@@ -112,6 +116,7 @@ public class UserController {
 
 
     @PostMapping("/logout")
+    @LogOperation("登出")
     public Unification<?> logout(@RequestHeader("X-Token")String token){
         userService.logout(token);//将当前用户的登录状态从系统中注销
         return Unification.success();
@@ -134,6 +139,7 @@ public class UserController {
      @return 返回Unification包装后的用户列表，包含总数和当前页码的用户信息列表
      */
     @GetMapping("/list")
+    @LogOperation("条件查询用户")
     public Unification<Map<String,Object>> getUserList(@RequestParam(value = "username", required = false) String username,
                                                        @RequestParam(value = "phone", required = false) String phone,
                                                        @RequestParam("pageNo") Long pageNo,
@@ -154,6 +160,7 @@ public class UserController {
 
 
     @PostMapping("/add")
+    @LogOperation("添加用户")
     public Unification<?> addUser(@RequestBody User user){
         boolean result = userService.addUser(user);
         if (result) {
