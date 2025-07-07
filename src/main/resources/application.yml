@@ -33,5 +33,16 @@ mybatis-plus:
       logic-not-delete-value: 0 # 逻辑未删除值(默认为 0)
   type-aliases-package: com.jyx.*.entity
 
-
-
+# Kaptcha 配置
+kaptcha:
+  border: false
+  textproducer:
+    font:
+      color: blue
+    font-size: 40
+  image:
+    width: 150
+    height: 50
+  textproducer:
+    char:
+      length: 5

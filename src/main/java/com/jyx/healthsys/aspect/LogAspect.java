@@ -4,6 +4,8 @@ import com.jyx.config.JwtConfig;
 
 import com.jyx.healthsys.annotation.LogOperation;
 import org.aspectj.lang.reflect.MethodSignature;
+
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 import com.jyx.healthsys.entity.Log;
@@ -28,6 +30,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.Objects;
+
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -47,14 +51,13 @@ public class LogAspect {
     }
 
     @Before("logPointcut()")
-    public void saveLog(JoinPoint joinPoint) {
+    public void saveLog(JoinPoint joinPoint) throws NoSuchFieldException, IllegalAccessException {
         HttpServletRequest request =
                 ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
 
         String ip = request.getRemoteAddr();
         String url = request.getRequestURI();
         String params = Arrays.toString(joinPoint.getArgs());
-
 
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         Method method = signature.getMethod();
@@ -68,6 +71,7 @@ public class LogAspect {
         // 1️⃣ 从请求头取 token
         String token = request.getHeader("X-Token");
         String username = "anonymous"; // 默认
+
         if (token != null) {
             try {
                 // 这里还是用你自己的 JWT 工具解析
@@ -75,6 +79,21 @@ public class LogAspect {
                 username = claims.get("username", String.class);
             } catch (Exception e) {
                 System.out.println("Token解析失败: " + e.getMessage());
+            }
+        }
+        else if(Objects.equals(url, "/user/login"))
+        {
+            Object[] args = joinPoint.getArgs(); // 获取方法参数
+            for (Object arg : args) {
+                if (arg == null) continue;
+
+                Class<?> clazz = arg.getClass();
+                if (clazz.getSimpleName().equals("User")) { // 或者 arg instanceof User
+                    Field field = null;
+                    field = clazz.getDeclaredField("username");
+                    field.setAccessible(true);
+                    username = field.get(arg).toString();
+                }
             }
         }
         //格式化时间

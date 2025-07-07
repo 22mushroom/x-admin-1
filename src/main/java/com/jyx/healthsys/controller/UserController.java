@@ -32,9 +32,6 @@ import java.util.Map;
  * <p>
  *  前端控制器
  * </p>
- *
- * @author 金义雄
- * @since 2023-02-23
  */
 //声明此类是一个RestController，即RESTful风格的控制器，控制用户相关的请求。
 //是一种设计风格，通过URI来定位资源，并使用HTTP协议中的请求方式（GET、POST、PUT、DELETE等）对资源进行操作
@@ -65,13 +62,23 @@ public class UserController {
     @PostMapping("/login")
     @LogOperation("登录")
     public Unification<Map<String,Object>> login(@RequestBody User user){
+        // 获取用户输入的验证码
+        String userCaptcha = user.getCaptcha(); // 接收前端传来的验证码
+
+        // 获取存储在 session 中的验证码
+        HttpSession session = request.getSession();
+        String sessionCaptcha = (String) session.getAttribute("captcha");
+
+        // 校验验证码
+        if (sessionCaptcha == null || !sessionCaptcha.equalsIgnoreCase(userCaptcha)) {
+            return Unification.fail(20003, "验证码错误");
+        }
         Map<String,Object> data = userService.login(user);
         if (data != null) {
             return Unification.success(data);
         }
         return Unification.fail(20002, "用户名或密码错误");
     }
-
 
 
     @PostMapping("/Wxlogin")
@@ -82,9 +89,6 @@ public class UserController {
         }
         return Unification.fail();
     }
-
-
-
 
 
     @PostMapping("/register")
@@ -330,12 +334,6 @@ public class UserController {
         }
         return Unification.fail("修改失败，用户名或密码错误");
     }
-
-
-
-
-
-
 
 
 
